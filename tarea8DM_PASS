@@ -1,0 +1,51 @@
+#!/bin/bash
+export LANG=C
+#bienvenida
+echo -e "--- Bienvenido al validador de passwords de David Martin---\nrecuerda que tu password tiene que ser de 15 caracteres de largo"
+echo -e "Incluir al menos una letra MAYUSCULA, 1 letra minuscula, al menos un numero e"
+echo -e 'Incluir un simbolo, los simbolos aceptados seran unicamente:&%$#.-_+=@'
+echo -e "no se permiten caracteres repetidos consecutivamente"
+echo "cuantos passwords deseas validar:?"
+
+#verificacion de ingreso de solo numeros 
+read ciclos
+test=$( echo $ciclos | grep -i -c '[ a-z ]' )
+
+if [ "$test" != 0 ]
+then
+	echo "opcion no valida solo ingresa numeros"
+	exit
+
+else
+	touch passwords.txt
+	until [ $ciclos == 0 ]
+	do 
+		echo "password numero $ciclos"
+		echo "escribe tu password, de 15 caraceres, 1 MAYUS,1 minus, un numero y un simbolo"
+		echo "sin caracteres repetidos consecutivamente"
+#verificaciones y greps
+		read pass
+		numcar=$(echo $pass | wc -m)
+		sim=$(echo $pass | egrep -c '[\&\%\$\#\.\-\_\+\=\@]')
+		nsim=$(echo $pass | egrep -c '[\!\^\/\*\(\)\{\}\[\]\\]')
+		may=$(echo $pass | egrep -c '[A-Z]')
+		min=$(echo $pass | egrep -c '[a-z]')
+		num=$(echo $pass | egrep -c '[0-9]')
+		existe=$(more passwords.txt | fgrep -c $pass) 
+		rep=$(echo $pass | egrep -cE '(.)\1')
+			#checadores
+			echo "caracteres: $numcar MAY: $may min: $min numeros: $num repetido: $rep existe: $existe simbolos: $sim nsim: $nsim"
+		if [ $numcar == 16 -a $may -eq 1 -a $min -eq 1 -a $num -eq 1 -a $existe -eq 0 -a $rep -eq 0 -a $sim -eq 1 -a $nsim -eq 0 ]  
+		then
+			echo "password guardado exitosamente en passwords.txt"
+			echo $pass >> passwords.txt
+			ciclos=$((ciclos-1)) 			
+		else
+			touch errores.log
+			echo 2>> errores.log
+			echo  "------intentalo de nuevo con los parametros correctos o ese password ya existe"
+		fi
+	done
+	echo "todos los passwords han sido guardados exitosamente....... adios"
+fi
+
